@@ -1,0 +1,11 @@
+FROM tensorflow/tensorflow:2.3.1-gpu
+RUN rm /etc/apt/sources.list.d/* && apt-get clean && apt-get update
+RUN apt-get update
+RUN apt-get install -y zsh tmux wget git libsndfile1 espeak-ng
+RUN pip install fastapi "uvicorn[standard]" ipython phonemizer dataclasses && \
+    pip install git+https://github.com/TensorSpeech/TensorflowTTS.git@v0.9
+RUN mkdir /res
+COPY inf.py /inf.py
+COPY res/* /res/
+COPY ljspeech.py /usr/local/lib/python3.6/dist-packages/tensorflow_tts/processor/ljspeech.py
+CMD uvicorn inf:app --port 12345 --host 0.0.0.0 

@@ -1,0 +1,28 @@
+﻿In this file I explain what changes did I do to TensorFlowTTS files and why did I do them.
+*-/examples/tacotron2/conf/tacotron2.v1.yaml
+in this file i changed the batch size to 16 because our V-ram couldn't handle 32 batches at once.
+
+*-/preprocess/ljspeech_preprocess.yaml
+global_gain_scale from 1 to 0.7
+persian texts with fixed number of characters can produce longer voices compared to english. we change this scale to fix the problem here.
+
+*-/tensorflow_tts/bin/preprocess.py
+this is the main preprocess file. you need to change the text cleaners from english to persian for ljspeech
+
+*-/tensorflow_tts/models/tacotron2.py
+maximum lenght of our audio files is more than english files. you need to increase maximum_iterations from 2000 to 3100.
+
+*-/tensorflow_tts/processor/ljspeech.py
+
+there are a few things in this file that need to change in order to be compatible with persian writing.
+_punctuation = "!(),.[]،؟ "
+_letters = "ءآأؤئابتثجحخدذرزسشصضطظعغـفقكلمنهويًپچژکگۀی<U+200C><U+200D><U+200E>"
+
+    cleaner_names: str = "basic_cleaners"
+    positions = {
+        "wave_file": 0,
+        "text_norm": 1,
+     }
+
+all these changes could be downloaded from this link:
+##########link##################

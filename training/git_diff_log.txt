@@ -1,0 +1,88 @@
+﻿diff --git a/examples/tacotron2/conf/tacotron2.v1.yaml b/examples/tacotron2/conf/tacotron2.v1.yaml
+index dc3aa94..a9df9c8 100755
+--- a/examples/tacotron2/conf/tacotron2.v1.yaml
++++ b/examples/tacotron2/conf/tacotron2.v1.yaml
+@@ -47,7 +47,7 @@ tacotron2_params:
+ ###########################################################
+ #                  DATA LOADER SETTING                    #
+ ###########################################################
+-batch_size: 32             # Batch size.
++batch_size: 16             # Batch size.
+ remove_short_samples: true # Whether to remove samples the length of which are less than batch_max_steps.
+ allow_cache: true          # Whether to allow cache in dataset. If true, it requires cpu memory.
+ mel_length_threshold: 32   # remove all targets has mel_length <= 32
+diff --git a/preprocess/ljspeech_preprocess.yaml b/preprocess/ljspeech_preprocess.yaml
+index f01bf20..d193ae5 100755
+--- a/preprocess/ljspeech_preprocess.yaml
++++ b/preprocess/ljspeech_preprocess.yaml
+@@ -10,7 +10,7 @@ window: "hann"           # Window function.
+ num_mels: 80             # Number of mel basis.
+ fmin: 80                 # Minimum freq in mel basis calculation.
+ fmax: 7600               # Maximum frequency in mel basis calculation.
+-global_gain_scale: 1.0   # Will be multiplied to all of waveform.
++global_gain_scale: 0.7   # Will be multiplied to all of waveform.
+ trim_silence: true       # Whether to trim the start and end of silence.
+ trim_threshold_in_db: 60 # Need to tune carefully if the recording is not good.
+ trim_frame_size: 2048    # Frame size in trimming.
+diff --git a/tensorflow_tts/bin/preprocess.py b/tensorflow_tts/bin/preprocess.py
+index 4482c18..55b2883 100755
+--- a/tensorflow_tts/bin/preprocess.py
++++ b/tensorflow_tts/bin/preprocess.py
+@@ -359,7 +359,7 @@ def preprocess():
+     }
+
+     dataset_cleaner = {
+-        "ljspeech": "english_cleaners",
++        "ljspeech": "basic_cleaners",
+         "kss": "korean_cleaners",
+         "libritts": None,
+         "baker": None,
+diff --git a/tensorflow_tts/models/tacotron2.py b/tensorflow_tts/models/tacotron2.py
+index e5ff312..6349d5d 100755
+--- a/tensorflow_tts/models/tacotron2.py
++++ b/tensorflow_tts/models/tacotron2.py
+@@ -803,7 +803,7 @@ class TFTacotron2(tf.keras.Model):
+         speaker_ids,
+         mel_gts,
+         mel_lengths,
+-        maximum_iterations=2000,
++        maximum_iterations=3100,
+         use_window_mask=False,
+         win_front=2,
+         win_back=3,
+diff --git a/tensorflow_tts/processor/ljspeech.py b/tensorflow_tts/processor/ljspeech.py
+index b44e453..1a271b0 100755
+--- a/tensorflow_tts/processor/ljspeech.py
++++ b/tensorflow_tts/processor/ljspeech.py
+@@ -112,9 +112,12 @@ valid_symbols = [
+
+ _pad = "pad"
+ _eos = "eos"
+-_punctuation = "!'(),.:;? "
++# _punctuation = "!'(),.:;? "
++_punctuation = "!(),.[]،؟ "
+ _special = "-"
+-_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
++# _letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
++_letters = "ءآأؤئابتثجحخدذرزسشصضطظعغـفقكلمنهويًپچژکگۀی<U+200C><U+200D><U+200E>"
++
+
+ # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
+ _arpabet = ["@" + s for s in valid_symbols]
+@@ -132,11 +135,13 @@ _curly_re = re.compile(r"(.*?)\{(.+?)\}(.*)")
+ class LJSpeechProcessor(BaseProcessor):
+     """LJSpeech processor."""
+
+-    cleaner_names: str = "english_cleaners"
++    # cleaner_names: str = "english_cleaners"
++    cleaner_names: str = "basic_cleaners"
+     positions = {
+         "wave_file": 0,
+-        "text": 1,
+-        "text_norm": 2,
++        # "text": 1,
++        # "text_norm": 2,
++        "text_norm": 1,
+     }
+     train_f_name: str = "metadata.csv"
+
